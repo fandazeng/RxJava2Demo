@@ -1,5 +1,6 @@
 package zeng.fanda.com.rxjava2demo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -30,11 +31,11 @@ public class CombineObservableActivity extends BaseActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        tv_navigation.setText("跳转到辅助操作演示");
+        tv_navigation.setText("跳转到错误处理操作演示");
         tv_navigation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                startActivity(new Intent(CombineObservableActivity.this,ErrorHandleObservableActivity.class));
             }
         });
 
