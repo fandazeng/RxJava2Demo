@@ -9,7 +9,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".FilterObservableActivity">
+        <activity android:name=".CombineObservableActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -20,6 +20,7 @@
         <activity android:name=".CreateObservableActivity"/>
         <activity android:name=".TransforObservableActivity"/>
         <activity android:name=".BaseActivity"/>
+        <activity android:name=".FilterObservableActivity"/>
     </application>
 
 </manifest>
