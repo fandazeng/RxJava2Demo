@@ -6,28 +6,46 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import io.reactivex.Observer;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 
 /**
  * @author 曾凡达
  * @date 2019/7/9
  */
-public class BaseActivity extends AppCompatActivity {
+public abstract class BaseActivity extends AppCompatActivity {
+
+    public static final String INTENT_KEY = "Data";
 
     protected final String TAG = getClass().getName() + "_TAG";
 
     protected Observer mObserver;
 
-    protected TextView tv_navigation;
+    protected CompositeDisposable mCompositeDisposable;
+
+    @Nullable
+    @BindView(R.id.tv_request)
+    TextView mRequestData;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        tv_navigation = findViewById(R.id.tv_navigation);
+        setContentView(initLayoutId());
+        ButterKnife.bind(this);
+        if (mRequestData != null) {
+            mRequestData.setText(getIntent().getStringExtra(INTENT_KEY));
+        }
+        mCompositeDisposable = new CompositeDisposable();
         createObserver();
+        initData();
     }
+
+    protected abstract int initLayoutId();
+
+    protected abstract void initData();
 
     private void createObserver() {
         mObserver = new Observer<Object>() {
@@ -51,5 +69,25 @@ public class BaseActivity extends AppCompatActivity {
                 Log.d(TAG, "完成" + " == 完成线程为：" + Thread.currentThread().getName());
             }
         };
+    }
+
+    protected void addDispose(Disposable... disposable) {
+        for (Disposable d : disposable) {
+            mCompositeDisposable.add(d);
+        }
+    }
+
+    protected void clearDispose() {
+        mCompositeDisposable.clear();
+    }
+
+    protected void deletedispose(Disposable disposable) {
+        mCompositeDisposable.delete(disposable);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        clearDispose();
     }
 }

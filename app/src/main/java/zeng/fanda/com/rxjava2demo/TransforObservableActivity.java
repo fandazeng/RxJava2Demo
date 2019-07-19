@@ -1,14 +1,6 @@
 package zeng.fanda.com.rxjava2demo;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
-
-import org.reactivestreams.Subscriber;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.BiFunction;
@@ -39,15 +30,12 @@ public class TransforObservableActivity extends BaseActivity {
     private List<Course> mCourseList;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        tv_navigation.setText("跳转到过滤操作演示");
-        tv_navigation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(TransforObservableActivity.this, FilterObservableActivity.class));
-            }
-        });
+    protected int initLayoutId() {
+        return R.layout.activity_content;
+    }
+
+    @Override
+    protected void initData() {
         createStudents();
 //        testBuffer();
 //        testFlatMap();
@@ -65,9 +53,14 @@ public class TransforObservableActivity extends BaseActivity {
      * 与 buffer 类似，只是它在发射之前把收集到的数据放进单独的Observable， 而不是放进一个数据结构
      */
     private void testWindow() {
-        Disposable window = Observable.range(0, 11).window(2, 5).subscribe(new Consumer<Observable<Integer>>() {
+        Disposable window = Observable.range(0, 11).window(2, 1).subscribe(new Consumer<Observable<Integer>>() {
+
+            int count = 1;
+
             @Override
             public void accept(Observable<Integer> integerObservable) throws Exception {
+                Log.d(TAG, " accept线程为：" + count + Thread.currentThread().getName());
+                count++;
                 Disposable disposable = integerObservable.subscribe(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer integer) throws Exception {
@@ -76,6 +69,7 @@ public class TransforObservableActivity extends BaseActivity {
                 });
             }
         });
+
     }
 
     /**
@@ -108,18 +102,29 @@ public class TransforObservableActivity extends BaseActivity {
             @Override
             public Integer apply(Integer integer) throws Exception {
                 // 对分完组之后的数据的值进行变换处理
-                return integer * 2;
+                return integer * 3;
             }
         }).subscribe(new Consumer<GroupedObservable<Integer, Integer>>() {
             @Override
             public void accept(GroupedObservable<Integer, Integer> integerIntegerGroupedObservable) throws Exception {
                 Log.d(TAG, "GroupBy Key = " + integerIntegerGroupedObservable.getKey());
-                Disposable disposable = integerIntegerGroupedObservable.toList().subscribe(new Consumer<List<Integer>>() {
-                    @Override
-                    public void accept(List<Integer> integers) throws Exception {
-                        Log.d(TAG, "收到消息==" + integers + " == 消息线程为：" + Thread.currentThread().getName());
-                    }
-                });
+//                Disposable disposable = integerIntegerGroupedObservable.toList().subscribe(new Consumer<List<Integer>>() {
+//                    @Override
+//                    public void accept(List<Integer> integers) throws Exception {
+//                        Log.d(TAG, "收到消息==" + integers + " == 消息线程为：" + Thread.currentThread().getName());
+//                    }
+//                });
+
+                // 只打印奇数值
+                if (integerIntegerGroupedObservable.getKey() == 1) {
+                    Disposable disposable = integerIntegerGroupedObservable.subscribe(new Consumer<Integer>() {
+                        @Override
+                        public void accept(Integer integer) throws Exception {
+                            Log.d(TAG, "收到消息1==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
+                        }
+                    });
+                }
+
             }
         });
     }
@@ -238,7 +243,6 @@ public class TransforObservableActivity extends BaseActivity {
             }
         });
     }
-
 
 
 }

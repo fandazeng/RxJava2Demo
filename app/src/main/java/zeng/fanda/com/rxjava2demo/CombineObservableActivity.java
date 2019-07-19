@@ -1,12 +1,6 @@
 package zeng.fanda.com.rxjava2demo;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.View;
-
-import org.reactivestreams.Subscriber;
 
 import java.util.concurrent.TimeUnit;
 
@@ -14,11 +8,9 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Function3;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * 组合操作符演示
@@ -29,26 +21,20 @@ import io.reactivex.schedulers.Schedulers;
 public class CombineObservableActivity extends BaseActivity {
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        tv_navigation.setText("跳转到错误处理操作演示");
-        tv_navigation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(CombineObservableActivity.this,ErrorHandleObservableActivity.class));
-            }
-        });
+    protected int initLayoutId() {
+        return R.layout.activity_content;
+    }
 
-
+    @Override
+    protected void initData() {
 //        testCombineLatest();
 
 //        testJoin();
 //        testMerge();
 
-        testZip();
+//        testZip();
 //        testStartWith();
-//        testSwitchOnNext();
-
+        testSwitchOnNext();
     }
 
     /**
@@ -56,6 +42,9 @@ public class CombineObservableActivity extends BaseActivity {
      * 一个发射数据的Observable，开始发射最近的 Observable发射的数据。注意：当原始Observable发射了一个新的Observable时（不是这个 新的
      * Observable发射了一条数据时），它将取消订阅之前的那个Observable。这意味着，在 后来那个Observable产生之后到它开始发射数据之前的这段
      * 时间里，前一个Observable发射 的数据将被丢弃
+     * <p>
+     * 有点像时钟周期一样，每当前一个 Observable 发射数据后，另一个 Observable 的数据从头开始发射
+     *
      * <p>
      * call1: 0
      * call2: 0
@@ -100,27 +89,33 @@ public class CombineObservableActivity extends BaseActivity {
     }
 
     /**
-     * startWith 在发射数据之前先发射一个指定的数据序列 (头添加)
+     * startWith 在发射数据之前先发射一个指定的数据序列 (头添加)，最后发射的数据永远排在最前面
      * <p>
      * concatWith 在发射数据后面发射一个指定的数据序列 (尾添加)
+     *
+     *
      * <p>
+     * 收到消息==15 == 消息线程为：main
+     * 收到消息==16 == 消息线程为：main
+     * 收到消息==17 == 消息线程为：main
+     * 收到消息==500 == 消息线程为：main
      * 收到消息==100 == 消息线程为：main
-     * 收到消息==101 == 消息线程为：main
-     * 收到消息==102 == 消息线程为：main
+     * 收到消息==200 == 消息线程为：main
+     * 收到消息==300 == 消息线程为：main
      * 收到消息==0 == 消息线程为：main
      * 收到消息==1 == 消息线程为：main
      * 收到消息==2 == 消息线程为：main
+     * 完成 == 完成线程为：main
      */
     private void testStartWith() {
-//         Observable.range(0, 3).startWithArray(100, 200, 300).subscribe(mObserver);
-//         Observable.range(0, 3).startWith(100).subscribe(mObserver);
-        Observable.range(0, 3).startWith(Observable.range(100, 3)).subscribe(mObserver);
+        Observable.range(0, 3).startWithArray(100, 200, 300).startWith(500)
+                .startWith(Observable.range(15, 3)).subscribe(mObserver);
     }
 
     /**
      * 该操作符返回一个Obversable，它使用这个函数按顺序结合两个或多个Observables发射的数据项，然后它发射这个函数返回的结果。
      * 它按照严格的顺序应用这个函数。它只发射与发射数据项最少的那个Observable一样多的数据，假如两个Observable数据分布为4项，5项，则最终合并是4项
-     *
+     * <p>
      * 收到消息==observableA: 1 ==== observableB: 7 == 消息线程为：main
      * 收到消息==observableA: 2 ==== observableB: 8 == 消息线程为：main
      */
@@ -130,7 +125,7 @@ public class CombineObservableActivity extends BaseActivity {
         Observable.zip(observableA, observableB, new BiFunction<Integer, Integer, String>() {
             @Override
             public String apply(Integer integer, Integer integer2) throws Exception {
-                return "observableA: "+ integer+ " ==== "+ "observableB: "+ integer2;
+                return "observableA: " + integer + " ==== " + "observableB: " + integer2;
             }
         }).subscribe(mObserver);
     }
@@ -166,11 +161,10 @@ public class CombineObservableActivity extends BaseActivity {
             public void subscribe(ObservableEmitter<String> emitter) throws Exception {
                 emitter.onNext("100");
                 emitter.onError(new Throwable("error"));
-                emitter.onComplete();
             }
-        }).subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread());
+        });
 
-        Observable<Integer> observable2 = Observable.just(6, 7, 8, 9).subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread());
+        Observable<Integer> observable2 = Observable.range(0, 50);
 
         // mergeDelayError 它会保留	onError	通知直到合并后的Observable所有的数据发射完成，在那时它才会 把	onError	传递给观察者
         Observable.mergeDelayError(observable, observable2).subscribe(mObserver);
@@ -180,29 +174,29 @@ public class CombineObservableActivity extends BaseActivity {
     /**
      * 该操作符只要在另一个Observable发射的数据定义的时间窗口内，这个Observable发射了一条数据，就结合两个Observable发射的数据
      * <p>
+     * 即一个 Observable 的每个数据跟基座的 Observable 的所有数据都结合一次，是一对多的关系。先发射数据的 Observable 为基座。
+     *
      * <p>
-     * 订阅线程为：main
-     * observableA==1 == 消息线程为：main
-     * observableA==2 == 消息线程为：main
+     * <p>
      * observableB==7 == 消息线程为：main
-     * observableA ==1observableB ==7== 消息线程为：main
-     * 收到消息==8 == 消息线程为：main
-     * observableA ==2observableB ==7== 消息线程为：main
-     * 收到消息==9 == 消息线程为：main
      * observableB==8 == 消息线程为：main
-     * observableA ==1observableB ==8== 消息线程为：main
-     * 收到消息==9 == 消息线程为：main
-     * observableA ==2observableB ==8== 消息线程为：main
-     * 收到消息==10 == 消息线程为：main
      * observableB==9 == 消息线程为：main
-     * observableA ==1observableB ==9== 消息线程为：main
-     * 收到消息==10 == 消息线程为：main
-     * observableA ==2observableB ==9== 消息线程为：main
-     * 收到消息==11 == 消息线程为：main
-     * 完成 == 完成线程为：main
+     * observableA==1 == 消息线程为：RxComputationThreadPool-1
+     * observableA ==1observableB ==7== 消息线程为：RxComputationThreadPool-1
+     * 收到消息==8 == 消息线程为：RxComputationThreadPool-1
+     * observableA ==1observableB ==8== 消息线程为：RxComputationThreadPool-1
+     * 收到消息==9 == 消息线程为：RxComputationThreadPool-1
+     * observableA ==1observableB ==9== 消息线程为：RxComputationThreadPool-1
+     * 收到消息==10 == 消息线程为：RxComputationThreadPool-1
+     * observableA==2 == 消息线程为：RxComputationThreadPool-1
+     * observableA ==2observableB ==8== 消息线程为：RxComputationThreadPool-1
+     * 收到消息==10 == 消息线程为：RxComputationThreadPool-1
+     * observableA ==2observableB ==9== 消息线程为：RxComputationThreadPool-1
+     * 收到消息==11 == 消息线程为：RxComputationThreadPool-1
+     * 完成 == 完成线程为：RxComputationThreadPool-1
      */
     private void testJoin() {
-        Observable<Integer> observableA = Observable.range(1, 2);
+        Observable<Integer> observableA = Observable.range(1, 2).delay(1, TimeUnit.SECONDS);
         Observable<Integer> observableB = Observable.range(7, 3);
         observableA.join(observableB, new Function<Integer, ObservableSource<Integer>>() {
             @Override
@@ -234,17 +228,12 @@ public class CombineObservableActivity extends BaseActivity {
      * 收到消息==observableA:4=====observableB:14=====observableC:102===== == 消息线程为：main
      * 收到消息==observableA:4=====observableB:14=====observableC:103===== == 消息线程为：main
      * 收到消息==observableA:4=====observableB:14=====observableC:104===== == 消息线程为：main
-     * 收到消息==observableA:4=====observableB:14=====observableC:105===== == 消息线程为：main
-     * 收到消息==observableA:4=====observableB:14=====observableC:106===== == 消息线程为：main
-     * 收到消息==observableA:4=====observableB:14=====observableC:107===== == 消息线程为：main
-     * 收到消息==observableA:4=====observableB:14=====observableC:108===== == 消息线程为：main
-     * 收到消息==observableA:4=====observableB:14=====observableC:109===== == 消息线程为：main
      * 完成 == 完成线程为：main
      */
     private void testCombineLatest() {
         Observable<Integer> observableA = Observable.range(1, 4);
         Observable<Integer> observableB = Observable.range(10, 5);
-        Observable<Integer> observableC = Observable.range(100, 10);
+        Observable<Integer> observableC = Observable.range(100, 5);
 
 
         Observable.combineLatest(observableA, observableB, observableC, new Function3<Integer, Integer, Integer, String>() {

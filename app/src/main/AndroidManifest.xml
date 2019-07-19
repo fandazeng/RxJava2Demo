@@ -9,7 +9,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ErrorHandleObservableActivity">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -17,11 +17,17 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".CreateObservableActivity"/>
-        <activity android:name=".TransforObservableActivity"/>
-        <activity android:name=".BaseActivity"/>
-        <activity android:name=".FilterObservableActivity"/>
-        <activity android:name=".CombineObservableActivity"/>
+        <activity android:name=".BooleanObservableActivity" />
+        <activity android:name=".CreateObservableActivity" />
+        <activity android:name=".TransforObservableActivity" />
+        <activity android:name=".FilterObservableActivity" />
+        <activity android:name=".CombineObservableActivity" />
+        <activity android:name=".ErrorHandleObservableActivity" />
+        <activity android:name=".HelpObservableActivity" />
+        <activity android:name=".ConnectObservableActivity" />
+        <activity android:name=".BackPressureActivity" />
+        <activity android:name=".ComposeActivity" />
+        <activity android:name=".ParallelActivity" />
     </application>
 
 </manifest>

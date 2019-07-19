@@ -1,10 +1,6 @@
 package zeng.fanda.com.rxjava2demo;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.View;
 
 import java.util.concurrent.TimeUnit;
 
@@ -29,17 +25,14 @@ import io.reactivex.schedulers.Schedulers;
 public class FilterObservableActivity extends BaseActivity {
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        tv_navigation.setText("跳转到组合操作演示");
-        tv_navigation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(FilterObservableActivity.this, CombineObservableActivity.class));
-            }
-        });
+    protected int initLayoutId() {
+        return R.layout.activity_content;
+    }
 
-//        testDebounce();
+    @Override
+    protected void initData() {
+
+        testDebounce();
 //        testDistinct();
 //        testElementAt();
 //        testFilter();
@@ -52,41 +45,46 @@ public class FilterObservableActivity extends BaseActivity {
 //        testSample();
 //        testthrottleFirst();
 //        testSkip();
-        testTake();
-
+//        testTake();
     }
 
     /**
      * take 只发射前面的N项数据 take(1) 等价于 first
-     * takeLast 只发射前面的N项数据 takeLast(1) 等价于 last
+     * takeLast 只发射后面的N项数据 takeLast(1) 等价于 last
      */
     private void testTake() {
         // 只发射前面4个数据
 //         Observable.range(1, 10).take(4).subscribe(mObserver);
         // 只发射后面4个数据
-        Observable.range(1, 10).takeLast(1).subscribe(mObserver);
+//        Observable.range(1, 10).takeLast(4).subscribe(mObserver);
+
+        // 只获取3秒内发射的数据
+        Observable.intervalRange(0, 10, 0, 1, TimeUnit.SECONDS)
+                .take(3, TimeUnit.SECONDS)
+                .subscribe(mObserver);
     }
 
     private void testSkip() {
-        //通过interval每隔500毫秒产生一个数据
         //  忽略Observable发射的前N项数据，只保留之后的数据。
-//        Observable.interval(500, TimeUnit.MILLISECONDS).skip(2).subscribe(mObserver);
+//        Observable.interval(1, TimeUnit.SECONDS).skip(2).subscribe(mObserver);
 
         // 丢弃原始Observable开始的那段时间发 射的数据，时长和时间单位通过参数指定
-//        Observable.interval(500, TimeUnit.MILLISECONDS).skip(5,TimeUnit.SECONDS).subscribe(mObserver);
+        Observable.intervalRange(0, 10, 0, 1, TimeUnit.SECONDS).skip(5, TimeUnit.SECONDS)
+                .subscribe(mObserver);
 
         // 忽略原始Observable发射的后N项数据，只保留之前的数据。
 //        Observable.range(0, 10).skipLast(5).subscribe(mObserver);
 
         // 丢弃在原始Observable的生命周 期内最后一段时间内发射的数据
-        Observable.range(0, 100).flatMap(new Function<Integer, ObservableSource<?>>() {
-            @Override
-            public ObservableSource<?> apply(Integer integer) throws Exception {
-                Thread.sleep(200);
-                return Observable.just(integer);
-            }
-        }).skipLast(5, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread()).subscribe(mObserver);
+//        Observable.range(0, 100).flatMap(new Function<Integer, ObservableSource<?>>() {
+//            @Override
+//            public ObservableSource<?> apply(Integer integer) throws Exception {
+//                Thread.sleep(200);
+//                return Observable.just(integer);
+//            }
+//        }).skipLast(5, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread()).subscribe(mObserver);
+
     }
 
     /**
@@ -141,6 +139,7 @@ public class FilterObservableActivity extends BaseActivity {
     /**
      * 不发射任何数据，只发射Observable的终止通知
      * 这个操作符效果就如同empty（）方法创建一个空的Observable,只会执行onCompleted()方法，
+     * 返回 CompletableObserver 对象，通常与andThen 一起使用
      * 不同的是ignoreElements是对数据源的处理，而empty（）是创建Observable
      */
     private void testIgnoreElements() {
@@ -203,11 +202,11 @@ public class FilterObservableActivity extends BaseActivity {
         });
 
         //  在没有发射任何数据时发射一个你在参数中指定的默认值
-        Disposable firstDefault = Observable.empty().first(100).subscribe(new Consumer<Object>() {
+        Disposable firstDefault = Observable.<Integer>empty().first(100).subscribe(new Consumer<Integer>() {
 
             @Override
-            public void accept(Object o) throws Exception {
-                Log.d(TAG, "收到消息==" + o + " == 消息线程为：" + Thread.currentThread().getName());
+            public void accept(Integer integer) throws Exception {
+                Log.d(TAG, "收到消息==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
             }
         });
     }
@@ -244,7 +243,7 @@ public class FilterObservableActivity extends BaseActivity {
 
         //  如果索引值大于数据 项数，它会发射一个默认值（通过额外的参数指定），而不是抛出异常。
         //  但是如果你传递一 个负数索引值，它仍然会抛出一个	IndexOutOfBoundsException	异常。
-        // elementAtOrDefault(int,T)
+        // elementAt(int,T)
 
         Observable.range(0, 9).elementAt(11).subscribe(new MaybeObserver<Integer>() {
             @Override
@@ -300,7 +299,7 @@ public class FilterObservableActivity extends BaseActivity {
     /**
      * 过了一段指定的时间还没发射数据时才发射一个数据，默认在	computation	调度器上执行
      * <p>
-     * 这个操作符会会发射最后一项数据并回调 onCompleted
+     * 这个操作符会发射最后一项数据并回调 onCompleted
      * <p>
      * throttleWithTimeout 和 debounce 效果一样
      */
@@ -308,12 +307,14 @@ public class FilterObservableActivity extends BaseActivity {
         Observable.range(1, 15).flatMap(new Function<Integer, ObservableSource<String>>() {
             @Override
             public ObservableSource<String> apply(Integer integer) throws Exception {
-                Thread.sleep(200 * integer);
-                // 从9开始才发射一个数据，9*200 刚好少玗2秒的第一个数
+                Thread.sleep(100 * integer);
+                // 从9开始才发射一个数据，9*100 刚好少于1秒的第一个数
+                // 注意：先 sleep 后发射数据和先发射数据后 sleep 的区别
                 return Observable.just(integer + "");
             }
-        }).debounce(2, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
+        }).debounce(1, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread()).subscribe(mObserver);
+
 
 //        Observable.range(1, 15).flatMap(new Function<Integer, ObservableSource<String>>() {
 //            @Override

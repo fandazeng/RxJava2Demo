@@ -1,30 +1,28 @@
 package zeng.fanda.com.rxjava2demo;
 
-import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
-
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Completable;
+import io.reactivex.CompletableEmitter;
+import io.reactivex.CompletableOnSubscribe;
+import io.reactivex.Maybe;
+import io.reactivex.MaybeObserver;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
-import io.reactivex.Observer;
 import io.reactivex.Scheduler;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.BooleanSupplier;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subscribers.DefaultSubscriber;
-import io.reactivex.subscribers.SafeSubscriber;
 
 /**
  * 创建 Observable 演示
@@ -35,11 +33,13 @@ public class CreateObservableActivity extends BaseActivity {
 
     private String data = "测试数据";
 
+    @Override
+    protected int initLayoutId() {
+        return R.layout.activity_content;
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
+    protected void initData() {
 //        testSchedulers();
 //        testCreateObservable();
 //        testDeferObservable();
@@ -54,25 +54,151 @@ public class CreateObservableActivity extends BaseActivity {
 //        testRangeObservable();
         testRepeatObservable();
 
-        findViewById(R.id.tv_navigation).setOnClickListener(new View.OnClickListener() {
+//        testSingleObservable();
+//        testCompletableObservable();
+//        testMaybeObservable();
+    }
+
+    /**
+     * single 和 completable 的结合体，只能发射零或一个数据，后续发的数据不会做任何处理，有 onComplete 和 onError 事件
+     * <p>
+     * 收到消息==1 == 消息线程为：main
+     * <p>
+     * 后续的 1 和 onComplete 事件不会收到
+     */
+    private void testMaybeObservable() {
+//        Disposable disposable = Maybe.create(new MaybeOnSubscribe<Integer>() {
+//
+//            @Override
+//            public void subscribe(MaybeEmitter<Integer> emitter) throws Exception {
+//                emitter.onSuccess(1);
+//                emitter.onSuccess(2);
+//                emitter.onComplete();
+//            }
+//        }).subscribe(new Consumer<Integer>() {
+//            @Override
+//            public void accept(Integer integer) throws Exception {
+//                Log.d(TAG, "收到消息==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
+//            }
+//        }, new Consumer<Throwable>() {
+//            @Override
+//            public void accept(Throwable throwable) throws Exception {
+//
+//            }
+//        }, new Action() {
+//            @Override
+//            public void run() throws Exception {
+//                Log.d(TAG, "Maybe Complete=="  + " == 消息线程为：" + Thread.currentThread().getName());
+//            }
+//        });
+
+        // 如果没有发射任何数据时，会回调 onComplete ，有发射数据或 onError ，则不会再回调 onComplete
+        Maybe.empty().subscribe(new MaybeObserver<Object>() {
+
             @Override
-            public void onClick(View v) {
-                startActivity(new Intent(CreateObservableActivity.this, TransforObservableActivity.class));
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onSuccess(Object o) {
+                Log.d(TAG, "收到消息==" + o + " == 消息线程为：" + Thread.currentThread().getName());
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+                Log.d(TAG, "完成" + " == 完成线程为：" + Thread.currentThread().getName());
             }
         });
+    }
 
+    /**
+     * 不会发射任何数据，只有 onComplete 和 onError 事件
+     */
+    private void testCompletableObservable() {
+        Disposable disposable = Completable.create(new CompletableOnSubscribe() {
+            @Override
+            public void subscribe(CompletableEmitter emitter) throws Exception {
+                TimeUnit.SECONDS.sleep(1);
+                emitter.onComplete();
+
+            }
+        }).andThen(Observable.range(1, 10)).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(Integer integer) throws Exception {
+                Log.d(TAG, "收到消息==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
+            }
+        });
+    }
+
+    /**
+     * 只能发射零或一个数据，后续发的数据不会做任何处理
+     * <p>
+     * 收到消息==2 == 消息线程为：main
+     */
+    private void testSingleObservable() {
+        Disposable disposable = Single.create(new SingleOnSubscribe<Integer>() {
+
+            @Override
+            public void subscribe(SingleEmitter<Integer> emitter) throws Exception {
+                emitter.onSuccess(2);
+                emitter.onSuccess(3);
+            }
+        }).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(Integer integer) throws Exception {
+                Log.d(TAG, "收到消息==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
+            }
+        });
     }
 
     /**
      * 重复地发射数据，如果不指定次数，默认无限
      */
     private void testRepeatObservable() {
-        Disposable disposable = Observable.range(1, 5).repeat(2).subscribe(new Consumer<Integer>() {
+//        Disposable disposable = Observable.range(1, 5).repeat(2).subscribe(new Consumer<Integer>() {
+//            @Override
+//            public void accept(Integer integer) throws Exception {
+//                Log.d(TAG, "收到消息==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
+//            }
+//        });
+
+//        Disposable repeatWhen = Observable.range(1, 5).repeatWhen(new Function<Observable<Object>, ObservableSource<?>>() {
+//            @Override
+//            public ObservableSource<?> apply(Observable<Object> objectObservable) throws Exception {
+//                // 当这里发射数据时，才会重新发射原始数据
+//                return Observable.timer(5,TimeUnit.SECONDS);
+//            }
+//        }).subscribe(new Consumer<Integer>() {
+//            @Override
+//            public void accept(Integer integer) throws Exception {
+//                Log.d(TAG, "收到消息==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
+//            }
+//        });
+
+        final long start = System.currentTimeMillis();
+        Disposable repeatUntil = Observable.range(1, 5).repeatUntil(new BooleanSupplier() {
+            @Override
+            public boolean getAsBoolean() throws Exception {
+                return System.currentTimeMillis() - start > 5000;
+            }
+        }).subscribe(new Consumer<Integer>() {
             @Override
             public void accept(Integer integer) throws Exception {
                 Log.d(TAG, "收到消息==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
             }
         });
+        try {
+            TimeUnit.SECONDS.sleep(6);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
@@ -202,9 +328,13 @@ public class CreateObservableActivity extends BaseActivity {
 
             @Override
             public void subscribe(ObservableEmitter<String> emitter) throws Exception {
-                emitter.onNext(data);
-                Log.d(TAG, "Observable 在发射消息");
-                emitter.onComplete();
+                if (!emitter.isDisposed()) {
+                    emitter.onNext(data);
+                    Log.d(TAG, "Observable 在发射消息");
+                    emitter.onComplete();
+                    // 这里发射的数据不再接收了
+                    emitter.onNext("==========================");
+                }
             }
         });
 

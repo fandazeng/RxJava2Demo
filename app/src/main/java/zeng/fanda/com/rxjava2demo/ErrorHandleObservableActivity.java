@@ -1,13 +1,6 @@
 package zeng.fanda.com.rxjava2demo;
 
-import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.View;
-
-import org.reactivestreams.Subscriber;
-
-import java.util.concurrent.TimeUnit;
 
 import io.reactivex.CompletableObserver;
 import io.reactivex.CompletableSource;
@@ -15,14 +8,7 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.BiFunction;
-import io.reactivex.functions.BiPredicate;
-import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * 错误处理演示
@@ -33,16 +19,12 @@ import io.reactivex.schedulers.Schedulers;
 public class ErrorHandleObservableActivity extends BaseActivity {
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        tv_navigation.setText("跳转到辅助操作演示");
-        tv_navigation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+    protected int initLayoutId() {
+        return R.layout.activity_content;
+    }
 
-            }
-        });
-
+    @Override
+    protected void initData() {
 //        testOnErrorReturn();
 
 //        testOnErrorResumeNext();
@@ -50,7 +32,6 @@ public class ErrorHandleObservableActivity extends BaseActivity {
 //        testOnExceptionResumeNext();
 
         testRetry();
-
     }
 
     /**
