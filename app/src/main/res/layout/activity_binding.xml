@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/tv_click"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textColor="#333333"
+        android:text="点击我" />
+
+    <EditText
+        android:id="@+id/et_edit"
+        android:layout_width="wrap_content"
+        android:layout_below="@id/tv_click"
+        android:layout_marginTop="10dp"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/tv_get_code"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/tv_click"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="10dp"
+        android:textSize="18sp"
+        android:textColor="#ff6602"
+        android:text="获取验证码" />
+
+    <Button
+        android:id="@+id/tv_share"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/tv_get_code"
+        android:layout_marginLeft="20dp"
+        android:textSize="18sp"
+        android:text="share" />
+
+    <EditText
+        android:id="@+id/et_phone"
+        android:layout_width="match_parent"
+        android:layout_marginTop="50dp"
+        android:layout_below="@id/et_edit"
+        android:hint="输输入手机号"
+        android:textColor="#333333"
+        android:inputType="phone"
+        android:layout_height="wrap_content" />
+
+    <EditText
+        android:id="@+id/et_password"
+        android:layout_below="@id/et_phone"
+        android:layout_width="match_parent"
+        android:hint="输输入密码"
+        android:layout_marginTop="10dp"
+        android:textColor="#333333"
+        android:layout_height="wrap_content" />
+
+
+    <Button
+        android:id="@+id/tv_login"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/et_password"
+        android:layout_marginTop="10dp"
+        android:layout_centerHorizontal="true"
+        android:textSize="18sp"
+        android:background="#333333"
+        android:textColor="#ffffff"
+        android:text="登录" />
+
+
+</RelativeLayout>

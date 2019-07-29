@@ -28,6 +28,8 @@
         <activity android:name=".BackPressureActivity" />
         <activity android:name=".ComposeActivity" />
         <activity android:name=".ParallelActivity" />
+        <activity android:name=".rxbinding.RxBindingActivity" />
+        <activity android:name=".SubjectActivity" />
     </application>
 
 </manifest>

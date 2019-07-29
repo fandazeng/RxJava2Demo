@@ -9,7 +9,9 @@ import io.reactivex.Completable;
 import io.reactivex.CompletableEmitter;
 import io.reactivex.CompletableOnSubscribe;
 import io.reactivex.Maybe;
+import io.reactivex.MaybeEmitter;
 import io.reactivex.MaybeObserver;
+import io.reactivex.MaybeOnSubscribe;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -20,9 +22,14 @@ import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.BooleanSupplier;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.AsyncSubject;
+import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.ReplaySubject;
 
 /**
  * 创建 Observable 演示
@@ -40,6 +47,7 @@ public class CreateObservableActivity extends BaseActivity {
 
     @Override
     protected void initData() {
+
 //        testSchedulers();
 //        testCreateObservable();
 //        testDeferObservable();
@@ -57,6 +65,7 @@ public class CreateObservableActivity extends BaseActivity {
 //        testSingleObservable();
 //        testCompletableObservable();
 //        testMaybeObservable();
+
     }
 
     /**
@@ -64,33 +73,33 @@ public class CreateObservableActivity extends BaseActivity {
      * <p>
      * 收到消息==1 == 消息线程为：main
      * <p>
-     * 后续的 1 和 onComplete 事件不会收到
+     * 后续的 2 和 onComplete 事件不会收到
      */
     private void testMaybeObservable() {
-//        Disposable disposable = Maybe.create(new MaybeOnSubscribe<Integer>() {
-//
-//            @Override
-//            public void subscribe(MaybeEmitter<Integer> emitter) throws Exception {
-//                emitter.onSuccess(1);
-//                emitter.onSuccess(2);
-//                emitter.onComplete();
-//            }
-//        }).subscribe(new Consumer<Integer>() {
-//            @Override
-//            public void accept(Integer integer) throws Exception {
-//                Log.d(TAG, "收到消息==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
-//            }
-//        }, new Consumer<Throwable>() {
-//            @Override
-//            public void accept(Throwable throwable) throws Exception {
-//
-//            }
-//        }, new Action() {
-//            @Override
-//            public void run() throws Exception {
-//                Log.d(TAG, "Maybe Complete=="  + " == 消息线程为：" + Thread.currentThread().getName());
-//            }
-//        });
+        Disposable disposable = Maybe.create(new MaybeOnSubscribe<Integer>() {
+
+            @Override
+            public void subscribe(MaybeEmitter<Integer> emitter) throws Exception {
+                emitter.onSuccess(1);
+                emitter.onSuccess(2);
+                emitter.onComplete();
+            }
+        }).subscribe(new Consumer<Integer>() {
+            @Override
+            public void accept(Integer integer) throws Exception {
+                Log.d(TAG, "收到消息==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
+            }
+        }, new Consumer<Throwable>() {
+            @Override
+            public void accept(Throwable throwable) throws Exception {
+
+            }
+        }, new Action() {
+            @Override
+            public void run() throws Exception {
+                Log.d(TAG, "Maybe Complete==" + " == 消息线程为：" + Thread.currentThread().getName());
+            }
+        });
 
         // 如果没有发射任何数据时，会回调 onComplete ，有发射数据或 onError ，则不会再回调 onComplete
         Maybe.empty().subscribe(new MaybeObserver<Object>() {
@@ -158,15 +167,17 @@ public class CreateObservableActivity extends BaseActivity {
     }
 
     /**
-     * 重复地发射数据，如果不指定次数，默认无限
+     * 重复地发射数据，如果不指定次数，默认无限，如果传0，则不发射任何数据，直接回调完成，如果传入负数，会报错
+     * 如果传入的值大于0，则会再重复地发射 n-1 次，即如果传1，则跟正常发射的内容一样，再重复发射0次
+     *
+     * 结果如下：
+     *
+     * 收到消息==1 == 消息线程为：main
+     * 收到消息==2 == 消息线程为：main
+     * 完成 == 完成线程为：main
      */
     private void testRepeatObservable() {
-//        Disposable disposable = Observable.range(1, 5).repeat(2).subscribe(new Consumer<Integer>() {
-//            @Override
-//            public void accept(Integer integer) throws Exception {
-//                Log.d(TAG, "收到消息==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
-//            }
-//        });
+        Observable.range(1, 2).repeat(1).subscribe(mObserver);
 
 //        Disposable repeatWhen = Observable.range(1, 5).repeatWhen(new Function<Observable<Object>, ObservableSource<?>>() {
 //            @Override
@@ -181,83 +192,81 @@ public class CreateObservableActivity extends BaseActivity {
 //            }
 //        });
 
-        final long start = System.currentTimeMillis();
-        Disposable repeatUntil = Observable.range(1, 5).repeatUntil(new BooleanSupplier() {
-            @Override
-            public boolean getAsBoolean() throws Exception {
-                return System.currentTimeMillis() - start > 5000;
-            }
-        }).subscribe(new Consumer<Integer>() {
-            @Override
-            public void accept(Integer integer) throws Exception {
-                Log.d(TAG, "收到消息==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
-            }
-        });
-        try {
-            TimeUnit.SECONDS.sleep(6);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    /**
-     * 发射一个范围内的有序整数序列，你可以指定范围的起始和长度。
-     */
-    private void testRangeObservable() {
-//        Disposable disposable = Observable.range(5, 10).subscribe(new Consumer<Integer>() {
+//        final long start = System.currentTimeMillis();
+//        Disposable repeatUntil = Observable.range(1, 5).repeatUntil(new BooleanSupplier() {
+//            @Override
+//            public boolean getAsBoolean() throws Exception {
+//                return System.currentTimeMillis() - start > 5000;
+//            }
+//        }).subscribe(new Consumer<Integer>() {
 //            @Override
 //            public void accept(Integer integer) throws Exception {
 //                Log.d(TAG, "收到消息==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
 //            }
 //        });
+//        try {
+//            TimeUnit.SECONDS.sleep(6);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
-        Disposable disposableLong = Observable.rangeLong(5, 10).subscribe(new Consumer<Long>() {
-            @Override
-            public void accept(Long aLong) throws Exception {
-                Log.d(TAG, "收到消息==" + aLong + " == 消息线程为：" + Thread.currentThread().getName());
-            }
-        });
+    }
+
+    /**
+     * 发射一个范围内的有序整数序列，你可以指定范围的起始和长度
+     * <p>
+     * 结果如下：
+     * <p>
+     * 收到消息==5 == 消息线程为：main
+     * 收到消息==6 == 消息线程为：main
+     * 完成 == 完成线程为：main
+     */
+    private void testRangeObservable() {
+        Observable.range(5, 2).subscribe(mObserver);
+        Observable.rangeLong(5, 2).subscribe(mObserver);
     }
 
     /**
      * 它在指定延迟之后发射一个零值，默认在 computation 调度器上执行，操作UI需要线程切换
+     * <p>
+     * 结果如下：
+     * <p>
+     * 收到消息==0 == 消息线程为：main
+     * 完成 == 完成线程为：main
      */
     private void testTimerObservable() {
-        Disposable disposable = Observable.timer(2, TimeUnit.SECONDS, AndroidSchedulers.mainThread()).subscribe(new Consumer<Long>() {
-            @Override
-            public void accept(Long aLong) throws Exception {
-                Log.d(TAG, "收到消息==" + aLong + " == 消息线程为：" + Thread.currentThread().getName());
-            }
-        });
+        Observable.timer(2, TimeUnit.SECONDS, AndroidSchedulers.mainThread()).subscribe(mObserver);
     }
 
     /**
-     * 创建一个按固定时间间隔发射整数序列的Observable，默认在	computation	调度器上执行，操作UI需要线程切换
+     * 创建一个按固定时间间隔发射整数序列的Observable，默认在 computation	调度器上执行，操作UI需要线程切换
+     * <p>
+     * 结果如下：
+     * <p>
+     * 收到消息==0 == 消息线程为：main
+     * 收到消息==1 == 消息线程为：main
+     * 收到消息==2 == 消息线程为：main
+     * ......
      */
     private void testIntervalObservable() {
-//        Disposable disposable = Observable.interval(1, 1, TimeUnit.SECONDS, AndroidSchedulers.mainThread()).
-//                subscribe(new Consumer<Long>() {
-//                    @Override
-//                    public void accept(Long aLong) throws Exception {
-//                        Log.d(TAG, "收到消息==" + aLong + " == 消息线程为：" + Thread.currentThread().getName());
-//                    }
-//                });
-
-        Disposable disposableRange = Observable.intervalRange(60, 60, 0, 1, TimeUnit.SECONDS, AndroidSchedulers.mainThread()).
-                subscribe(new Consumer<Long>() {
-                    @Override
-                    public void accept(Long aLong) throws Exception {
-                        Log.d(TAG, "收到消息==" + aLong + " == 消息线程为：" + Thread.currentThread().getName());
-                    }
-                });
+//        Observable.interval(1, 1, TimeUnit.SECONDS, AndroidSchedulers.mainThread()).
+//                subscribe(mObserver);
+        // 按给定的初始值和数量，再按固定时间间隔发射整数序列
+        Observable.intervalRange(10, 60, 0, 1, TimeUnit.SECONDS, AndroidSchedulers.mainThread()).
+                subscribe(mObserver);
     }
 
     /**
      * 将单个数据转换为发射那个数据的Observable
+     * <p>
+     * 结果如下：
+     * <p>
+     * 收到消息==1 == 消息线程为：main
+     * 收到消息==2 == 消息线程为：main
+     * 收到消息==3 == 消息线程为：main
      */
     private void testJustObservable() {
-        String[] array = {"1", "2", "3", "4", "5"};
+        String[] array = {"1", "2", "3"};
         Disposable disposable = Observable.just(array).subscribe(new Consumer<String[]>() {
             @Override
             public void accept(String[] strings) throws Exception {
@@ -266,35 +275,44 @@ public class CreateObservableActivity extends BaseActivity {
                 }
             }
         });
-
     }
 
     /**
-     * 将其它种类的对象和数据类型转换为Observable，对于Iterable和数组，产生的 Observable 会发射Iterable或数组的每一项数据
+     * 将其它种类的对象和数据类型转换为Observable，对于 Iterable 和数组，产生的 Observable 会发射 Iterable 或数组的每一项数据
+     * <p>
+     * 结果如下：
+     * <p>
+     * 收到消息==1 == 消息线程为：main
+     * 收到消息==2 == 消息线程为：main
+     * 收到消息==3 == 消息线程为：main
+     * 完成 == 完成线程为：main
      */
     private void testFromObservable() {
-        String[] array = {"1", "2", "3", "4", "5"};
+        String[] array = {"1", "2", "3"};
         Observable.fromArray(array).subscribe(mObserver);
     }
 
     /**
-     * 创建一个不发射数据以一个错误终止的Observable，需要一 个	Throwable	参数
+     * 创建一个不发射数据直接以一个错误终止的Observable，需要一 个	Throwable	参数
+     * <p>
+     * 结果如下：
+     * <p>
+     * 错误:testErrorObservable == 错误线程为：main
      */
     private void testErrorObservable() {
-        Observable<String> error = Observable.error(new Throwable("testErrorObservable"));
-        error.observeOn(AndroidSchedulers.mainThread()).subscribeOn(Schedulers.io()).subscribe(mObserver);
+        Observable.error(new Throwable("testErrorObservable")).observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io()).subscribe(mObserver);
     }
 
     /**
      * 创建一个不发射数据也不终止的Observable
      */
     private void testNeverObservable() {
-        Observable<String> never = Observable.never();
-        never.subscribe(mObserver);
+        Observable.never().subscribe(mObserver);
     }
 
     /**
-     * 创建一个不发射任何数据但是正常终止的Observable
+     * 创建一个不发射任何数据直接通知完成的Observable
      */
     private void testEmptyObservable() {
         final Observable<String> empty = Observable.empty();
@@ -308,6 +326,11 @@ public class CreateObservableActivity extends BaseActivity {
 
     /**
      * 直到有观察者订阅时才创建Observable，并且为每个观察者创建一个新的Observable
+     * <p>
+     * 结果如下：
+     * <p>
+     * 收到消息==新的测试数据 == 消息线程为：main
+     * 完成 == 完成线程为：main
      */
     private void testDeferObservable() {
         Observable<String> observable = Observable.defer(new Callable<ObservableSource<? extends String>>() {
@@ -322,23 +345,26 @@ public class CreateObservableActivity extends BaseActivity {
 
     /**
      * 通过调用观察者的方法从头创建一个Observable
+     * <p>
+     * 结果如下：
+     * <p>
+     * 收到消息==测试数据 == 消息线程为：main
+     * 完成 == 完成线程为：main
      */
     public void testCreateObservable() {
-        Observable<String> observable = Observable.create(new ObservableOnSubscribe<String>() {
+        Observable.create(new ObservableOnSubscribe<String>() {
 
             @Override
             public void subscribe(ObservableEmitter<String> emitter) throws Exception {
                 if (!emitter.isDisposed()) {
                     emitter.onNext(data);
-                    Log.d(TAG, "Observable 在发射消息");
                     emitter.onComplete();
                     // 这里发射的数据不再接收了
-                    emitter.onNext("==========================");
+                    emitter.onNext("新测试数据");
+                    emitter.onNext("新测试数据");
                 }
             }
-        });
-
-        observable.subscribe(mObserver);
+        }).subscribe(mObserver);
     }
 
     /**

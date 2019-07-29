@@ -51,7 +51,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         mObserver = new Observer<Object>() {
             @Override
             public void onSubscribe(Disposable d) {
-                Log.d(TAG, "订阅线程为：" + Thread.currentThread().getName());
             }
 
             @Override

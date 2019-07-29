@@ -41,8 +41,8 @@ public class ParallelActivity extends BaseActivity {
     @Override
     protected void initData() {
 //        testParalleByFlatMap();
-        testParalleByFlatMapWithExecutor();
-//        testParalleByFlowable();
+//        testParalleByFlatMapWithExecutor();
+        testParalleByFlowable();
     }
 
     /**

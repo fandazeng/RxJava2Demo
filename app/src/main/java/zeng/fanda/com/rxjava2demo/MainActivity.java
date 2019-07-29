@@ -13,6 +13,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import zeng.fanda.com.rxjava2demo.adapter.MainAdapter;
+import zeng.fanda.com.rxjava2demo.rxbinding.RxBindingActivity;
 
 /**
  * @author 曾凡达
@@ -52,6 +53,8 @@ public class MainActivity extends BaseActivity {
         mDatas.add("背压相关操作");
         mDatas.add("转换器相关操作");
         mDatas.add("并行 相关操作");
+        mDatas.add("RxBinding 使用场景");
+        mDatas.add("Subject 使用");
     }
 
     private void initRecyclerView() {
@@ -98,6 +101,12 @@ public class MainActivity extends BaseActivity {
                         break;
                     case 10:
                         intent.setClass(MainActivity.this, ParallelActivity.class);
+                        break;
+                    case 11:
+                        intent.setClass(MainActivity.this, RxBindingActivity.class);
+                        break;
+                        case 12:
+                        intent.setClass(MainActivity.this, SubjectActivity.class);
                         break;
                 }
                 intent.putExtra(INTENT_KEY, mDatas.get(position));

@@ -32,6 +32,8 @@ import io.reactivex.schedulers.Timed;
  */
 public class HelpObservableActivity extends BaseActivity {
 
+    private Disposable disposable;
+
     @Override
     protected int initLayoutId() {
         return R.layout.activity_content;
@@ -41,8 +43,8 @@ public class HelpObservableActivity extends BaseActivity {
     protected void initData() {
 //        testDelay();
 
-//        testDo();
-        testObserveOn();
+        testDo();
+//        testObserveOn();
 //        testTimeInterval();
 //        testTimestamp();
 
@@ -62,32 +64,34 @@ public class HelpObservableActivity extends BaseActivity {
 
 //        testMultiMap();
 
-        testToSortedList();
+//        testToSortedList();
 
     }
 
     /**
-     * 类似于 toList ，但是它可以对数据进行自然排序，默认是自然升序，如果发射的数据项没有实现	Comparable	接口，会抛出一个异常。
+     * 类似于 toList ，但是它可以对数据进行自然排序，默认是自然升序，如果发射的数据项没有实现 Comparable	 接口，会抛出一个异常。
+     * <p>
+     * 结果如下:
      * <p>
      * 收到消息==[0, 1, 2, 4, 7, 9, 10] == 消息线程为：main
      */
     private void testToSortedList() {
-//        Observable.just(1, 10, 4, 7, 2, 9, 0).toSortedList().subscribe(new SingleObserver<List<Integer>>() {
-//            @Override
-//            public void onSubscribe(Disposable d) {
-//
-//            }
-//
-//            @Override
-//            public void onSuccess(List<Integer> integers) {
-//                Log.d(TAG, "收到消息==" + integers + " == 消息线程为：" + Thread.currentThread().getName());
-//            }
-//
-//            @Override
-//            public void onError(Throwable e) {
-//
-//            }
-//        });
+        Observable.just(1, 10, 4, 7, 2, 9, 0).toSortedList().subscribe(new SingleObserver<List<Integer>>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onSuccess(List<Integer> integers) {
+                Log.d(TAG, "收到消息==" + integers + " == 消息线程为：" + Thread.currentThread().getName());
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+        });
 
         Observable.just(1, 10, 4, 7, 2, 9, 0).toSortedList(new Comparator<Integer>() {
             @Override
@@ -104,7 +108,6 @@ public class HelpObservableActivity extends BaseActivity {
         }).subscribe(new SingleObserver<List<Integer>>() {
             @Override
             public void onSubscribe(Disposable d) {
-
             }
 
             @Override
@@ -114,13 +117,16 @@ public class HelpObservableActivity extends BaseActivity {
 
             @Override
             public void onError(Throwable e) {
-
             }
         });
     }
 
     /**
      * 它生成的这个Map同时还是一个ArrayList
+     * <p>
+     * 结果如下；
+     * <p>
+     * 收到消息=={key1=[1], key2=[2], key0=[0]} == 消息线程为：main
      */
     private void testMultiMap() {
         Observable.range(0, 3).toMultimap(new Function<Integer, String>() {
@@ -132,7 +138,6 @@ public class HelpObservableActivity extends BaseActivity {
         }).subscribe(new SingleObserver<Map<String, Collection<Integer>>>() {
             @Override
             public void onSubscribe(Disposable d) {
-
             }
 
             @Override
@@ -142,13 +147,17 @@ public class HelpObservableActivity extends BaseActivity {
 
             @Override
             public void onError(Throwable e) {
-
             }
         });
     }
 
     /**
      * 该操作符收集原始Observable发射的所有数据项到一个Map（默认是HashMap)
+     * <p>
+     * 结果如下；
+     * <p>
+     * 收到消息=={key1=1, key2=2, key0=0} == 消息线程为：main
+     * 收到消息=={key1=101, key2=102, key0=100} == 消息线程为：main
      */
     private void testToMap() {
         Observable.range(0, 3).toMap(new Function<Integer, String>() {
@@ -160,7 +169,6 @@ public class HelpObservableActivity extends BaseActivity {
         }).subscribe(new SingleObserver<Map<String, Integer>>() {
             @Override
             public void onSubscribe(Disposable d) {
-
             }
 
             @Override
@@ -170,7 +178,6 @@ public class HelpObservableActivity extends BaseActivity {
 
             @Override
             public void onError(Throwable e) {
-
             }
         });
 
@@ -191,7 +198,6 @@ public class HelpObservableActivity extends BaseActivity {
         }).subscribe(new SingleObserver<Map<String, Integer>>() {
             @Override
             public void onSubscribe(Disposable d) {
-
             }
 
             @Override
@@ -201,22 +207,22 @@ public class HelpObservableActivity extends BaseActivity {
 
             @Override
             public void onError(Throwable e) {
-
             }
         });
-
-
     }
 
 
     /**
-     * 通过toList将单个数据最终以List的形式输出
+     * 通过toList将所有的数据最终以List的形式输出，返回 SingleObserver
+     * <p>
+     * 结果如下；
+     * <p>
+     * 收到消息==[0, 1, 2, 3, 4] == 消息线程为：main
      */
     private void testToList() {
-        Observable.range(0, 10).toList().subscribe(new SingleObserver<List<Integer>>() {
+        Observable.range(0, 5).toList().subscribe(new SingleObserver<List<Integer>>() {
             @Override
             public void onSubscribe(Disposable d) {
-
             }
 
             @Override
@@ -226,13 +232,19 @@ public class HelpObservableActivity extends BaseActivity {
 
             @Override
             public void onError(Throwable e) {
-
             }
         });
     }
 
     /**
      * 给Observable发射的数据项附加一个时间戳 ，默认在computation调度器上执行
+     * <p>
+     * 结果如下：
+     * <p>
+     * onNext: value:0 ===== time2019-07-24-09:55:24
+     * onNext: value:1 ===== time2019-07-24-09:55:24
+     * onNext: value:2 ===== time2019-07-24-09:55:24
+     * onNext: value:3 ===== time2019-07-24-09:55:24
      */
     private void testTimestamp() {
         // 默认单位为毫秒 TimeUnit.MILLISECONDS
@@ -240,33 +252,29 @@ public class HelpObservableActivity extends BaseActivity {
                 .subscribe(new Observer<Timed<Integer>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
-
                     }
 
                     @Override
                     public void onNext(Timed<Integer> integerTimed) {
                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss");
                         Log.d(TAG, "onNext: value:" + integerTimed.value() + " ===== " + "time" + sdf.format(new Date(integerTimed.time())));
-
                     }
 
                     @Override
                     public void onError(Throwable e) {
-
                     }
 
                     @Override
                     public void onComplete() {
-
                     }
                 });
     }
 
     /**
-     * 如果原始Observable过了指定的一段时间没有发射任何数据，Timeout操作符会以一个onError通知终止这个Observable。
-     * 默认在	computation	调度器上执行
+     * 如果原始Observable过了指定的一段时间没有发射任何数据，Timeout操作符会以一个onError通知终止这个Observable，默认在 computation 调度器上执行
      * <p>
-     * 订阅线程为：main
+     * 结果如下；
+     * <p>
      * 收到消息==1 == 消息线程为：main
      * 收到消息==2 == 消息线程为：main
      * 收到消息==3 == 消息线程为：main
@@ -275,20 +283,20 @@ public class HelpObservableActivity extends BaseActivity {
      * onNext 都是在 Main 线程上，报错的时候，在 computation 线程上
      */
     private void testTimeout() {
-//        Observable.create(new ObservableOnSubscribe<Integer>() {
-//
-//            @Override
-//            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
-//                emitter.onNext(1);
-//                Thread.sleep(100);
-//                emitter.onNext(2);
-//                Thread.sleep(200);
-//                emitter.onNext(3);
-//                Thread.sleep(300);
-//                emitter.onNext(4);
-//                Thread.sleep(400);
-//            }
-//        }).timeout(250, TimeUnit.MILLISECONDS).subscribe(mObserver);
+        Observable.create(new ObservableOnSubscribe<Integer>() {
+
+            @Override
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                emitter.onNext(1);
+                Thread.sleep(100);
+                emitter.onNext(2);
+                Thread.sleep(200);
+                emitter.onNext(3);
+                Thread.sleep(300);
+                emitter.onNext(4);
+                Thread.sleep(400);
+            }
+        }).timeout(250, TimeUnit.MILLISECONDS).subscribe(mObserver);
 
         // 在超时的时候切换到一个我们指定的备用的Observable，而不是发错误通知
         Observable.create(new ObservableOnSubscribe<Integer>() {
@@ -306,22 +314,31 @@ public class HelpObservableActivity extends BaseActivity {
             }
         }).timeout(250, TimeUnit.MILLISECONDS, Observable.just(100, 200)).subscribe(mObserver);
 
+        Observable.just(100).delay(1, TimeUnit.SECONDS).timeout(500, TimeUnit.MILLISECONDS).subscribe(mObserver);
+
     }
 
     /**
-     * doOnEach 相当于doOnNext，doOnError，doOnCompleted综合体
+     * doOnEach 相当于doOnNext，doOnError，doOnCompleted 的综合体
+     * <p>
+     * 结果如下：
+     * <p>
+     * DO 收到消息==1 == 消息线程为：main
+     * 收到消息==1 == 消息线程为：main
+     * DO 错误:测试错误 == 错误线程为：main
+     * 错误:测试错误 == 错误线程为：main
      */
     private void testDoOnEach() {
-        Observable.just(1, 2, 3).concatWith(Observable.<Integer>error(new Throwable("测试错误")))
-                .doOnEach(new Consumer<Notification<Integer>>() {
-                    @Override
-                    public void accept(Notification<Integer> integerNotification) throws Exception {
-                        // onNext回调之前，会先回调这里的
-                        Log.d(TAG, "call 线程：" + Thread.currentThread().getName());
-                    }
-                }).subscribe(mObserver);
+//        Observable.just(1, 2, 3).concatWith(Observable.<Integer>error(new Throwable("测试错误")))
+//                .doOnEach(new Consumer<Notification<Integer>>() {
+//                    @Override
+//                    public void accept(Notification<Integer> integerNotification) throws Exception {
+//                        // onNext回调之前，会先回调这里的
+//                        Log.d(TAG, "call 线程：" + Thread.currentThread().getName());
+//                    }
+//                }).subscribe(mObserver);
 
-        Observable.just(1, 2, 3).doOnEach(new Observer<Integer>() {
+        Observable.just(1).concatWith(Observable.<Integer>error(new Throwable("测试错误"))).doOnEach(new Observer<Integer>() {
             @Override
             public void onSubscribe(Disposable d) {
             }
@@ -347,11 +364,16 @@ public class HelpObservableActivity extends BaseActivity {
     }
 
     /**
-     * onNext回调之前会先回调
+     * doOnNext onNext回调之前会先回调
+     * doAfterNext  onNext回调之后再回调
+     * <p>
+     * 结果如下；
+     * <p>
+     * 收到消息==1 == 消息线程为：main
+     * 收到消息==2 == 消息线程为：main
+     * 错误:测试错误 == 错误线程为：main
      */
     private void testDoOnNext() {
-        // doAfterNext  onNext回调之后再回调
-
         Observable.just(1, 2, 3).doOnNext(new Consumer<Integer>() {
             @Override
             public void accept(Integer integer) throws Exception {
@@ -374,38 +396,58 @@ public class HelpObservableActivity extends BaseActivity {
 //        testDoOnError();
 //        testDoOnTerminate();
 //        testDoFinally();
+//        testDoFinallyAndTerminate();
 //        testDoOnComplete();
-//        testDoOnSubscribe();
+        testDoOnSubscribe();
 
     }
 
     /**
-     * TimeInterval	操作符拦截原始Observable发射的数据项，替换为发射表示相邻发射物时间间 隔的对象
-     * 默认在	immediate	调度器上执行，
+     * 测试 doOnFinally 和 doAfterTerminate 的调用顺序（离观察者越近，就越先执行）
+     *
+     * 结果如下：
+     *
+     * 收到消息==1 == 消息线程为：main
+     * 完成 == 完成线程为：main
+     * doFinally == 2
+     * doAfterTerminate == 2
+     * doFinally == 1
+     * doAfterTerminate == 1
+     */
+    private void testDoFinallyAndTerminate() {
+        Observable.just(1).doAfterTerminate(() -> Log.d(TAG, "doAfterTerminate == 1")).doFinally(() -> Log.d(TAG, "doFinally == 1"))
+                .doAfterTerminate(() -> Log.d(TAG, "doAfterTerminate == 2")).doFinally(() -> Log.d(TAG, "doFinally == 2"))
+                .subscribe(mObserver);
+    }
+
+    /**
+     * 将原始Observable发射的数据项替换为发射表示相邻数据时间间隔的对象
+     * <p>
+     * 结果如下：
+     * <p>
+     * onNext: value:0 ===== time1 == 消息线程为：main
+     * onNext: value:1 ===== time0 == 消息线程为：main
+     * onNext: value:2 ===== time0 == 消息线程为：main
      */
     private void testTimeInterval() {
         // 默认单位为毫秒 TimeUnit.MILLISECONDS
-        Observable.range(0, 20).delay(1, TimeUnit.SECONDS).timeInterval(TimeUnit.MILLISECONDS).observeOn(AndroidSchedulers.mainThread())
+        Observable.range(0, 20).timeInterval(TimeUnit.MILLISECONDS)
                 .subscribe(new Observer<Timed<Integer>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
-
                     }
 
                     @Override
                     public void onNext(Timed<Integer> integerTimed) {
-                        Log.d(TAG, "onNext: value:" + integerTimed.value() + " ===== " + "time" + integerTimed.time());
-
+                        Log.d(TAG, "onNext: value:" + integerTimed.value() + " ===== " + "time" + integerTimed.time() + " == 消息线程为：" + Thread.currentThread().getName());
                     }
 
                     @Override
                     public void onError(Throwable e) {
-
                     }
 
                     @Override
                     public void onComplete() {
-
                     }
                 });
     }
@@ -446,6 +488,12 @@ public class HelpObservableActivity extends BaseActivity {
 
     /**
      * 当观察者订阅它生成的Observable就会被调用,在 onSubscribe 回调之前会先调用
+     *
+     * 结果如下：
+     *
+     * call 线程：main
+     * 收到消息==1 == 消息线程为：main
+     * 完成 == 完成线程为：main
      */
     private void testDoOnSubscribe() {
         Observable.just(1).doOnSubscribe(new Consumer<Disposable>() {
@@ -459,6 +507,12 @@ public class HelpObservableActivity extends BaseActivity {
 
     /**
      * onComplete回调之前会先回调
+     * <p>
+     * 结果如下：
+     * <p>
+     * 收到消息==1 == 消息线程为：main
+     * call 线程：main
+     * 完成 == 完成线程为：main
      */
     private void testDoOnComplete() {
         Observable.just(1).doOnComplete(new Action() {
@@ -471,45 +525,71 @@ public class HelpObservableActivity extends BaseActivity {
     }
 
     /**
-     * 当它产生的Observable终止之 *后* 会被调用，无论是正常还 是异常终止
+     * 在观察者执行完 onError、onComplete 或取消时执行的操作。
+     * <p>
+     * 结果如下：
+     * <p>
+     * 收到消息==0 == 消息线程为：RxComputationThreadPool-1
+     * 收到消息==1 == 消息线程为：RxComputationThreadPool-1
+     * call dispose：RxComputationThreadPool-1
      */
     private void testDoFinally() {
-        Observable.create(new ObservableOnSubscribe<Integer>() {
+//        Observable.create(new ObservableOnSubscribe<Integer>() {
+//
+//            @Override
+//            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+//                emitter.onNext(1);
+//                emitter.onComplete();
+////                emitter.onError(new Throwable("测试错误"));
+//
+//            }
+//        }).doFinally(new Action() {
+//            @Override
+//            public void run() throws Exception {
+//                Log.d(TAG, "call 线程：" + Thread.currentThread().getName());
+//            }
+//        }).subscribe(mObserver);
 
-            @Override
-            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
-                emitter.onNext(1);
-                emitter.onNext(2);
-                emitter.onNext(3);
-                emitter.onComplete();
-//                emitter.onError(new Throwable("测试错误"));
 
-            }
-        }).doFinally(new Action() {
+        disposable = Observable.interval(1, TimeUnit.SECONDS).doFinally(new Action() {
             @Override
             public void run() throws Exception {
-                Log.d(TAG, "call 线程：" + Thread.currentThread().getName());
+                Log.d(TAG, "call dispose：" + Thread.currentThread().getName());
             }
-        }).subscribe(mObserver);
+        }).subscribe(new Consumer<Long>() {
+            long count = 0;
+
+            @Override
+            public void accept(Long aLong) throws Exception {
+                count++;
+                Log.d(TAG, "收到消息==" + aLong + " == 消息线程为：" + Thread.currentThread().getName());
+                if (count >= 2) {
+                    if (!disposable.isDisposed()) {
+                        disposable.dispose();
+                    }
+                }
+            }
+        });
     }
 
     /**
-     * Observable终止之前会被调用，无论是正 常还是异常终止
+     * Observable终止之前会被调用，无论是正常还是异常终止
+     * <p>
+     * 结果如下：
+     * <p>
+     * 收到消息==1 == 消息线程为：main
+     * call 线程：main
+     * 错误:测试错误 == 错误线程为：main
      */
     private void testDoOnTerminate() {
-
-        // doAfterTerminate Observable终止之后再被调用，无论是正 常还是异常终止
-
+        // doAfterTerminate Observable终止之后再被调用，无论是正常还是异常终止
         Observable.create(new ObservableOnSubscribe<Integer>() {
 
             @Override
             public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
                 emitter.onNext(1);
-                emitter.onNext(2);
-                emitter.onNext(3);
 //                emitter.onComplete();
                 emitter.onError(new Throwable("测试错误"));
-
             }
         }).doOnTerminate(new Action() {
             @Override
@@ -521,6 +601,11 @@ public class HelpObservableActivity extends BaseActivity {
 
     /**
      * onError回调之前会先回调
+     * <p>
+     * 结果如下：
+     * <p>
+     * call 线程：main
+     * 错误:测试错误 == 错误线程为：main
      */
     private void testDoOnError() {
         Observable.error(new Throwable("测试错误")).doOnError(new Consumer<Throwable>() {
@@ -532,17 +617,17 @@ public class HelpObservableActivity extends BaseActivity {
     }
 
     /**
-     * delay	默认在	computation	调度器上执行
+     * delay 默认在 computation	调度器上执行
      */
     private void testDelay() {
         //延迟一段指定的时间再发射来自Observable的发射物
-//        Observable.range(0, 5).delay(2, TimeUnit.SECONDS).subscribe(mObserver);
+        Observable.range(0, 5).delay(2, TimeUnit.SECONDS).subscribe(mObserver);
 
-        // delay	不会平移	onError	通知，它会立即将这个通知传递给订阅者，同时丢弃任何待 发射的	onNext	通知
-//        Observable.error(new Throwable("测试错误")).delay(10, TimeUnit.SECONDS).subscribe(mObserver);
+        // delay 不会延迟 onError 通知，它会立即将这个通知传递给订阅者，同时丢弃剩下的所有数据
+        Observable.error(new Throwable("测试错误")).delay(10, TimeUnit.SECONDS).subscribe(mObserver);
 
-        // 会平移一个	onCompleted	通知
-//        Observable.empty().delay(10, TimeUnit.SECONDS).subscribe(mObserver);
+        // 会延迟 onCompleted 通知
+        Observable.empty().delay(10, TimeUnit.SECONDS).subscribe(mObserver);
 
         // 它和dealy的区别是dealy是延迟数据的发送，而此操作符是延迟数据的注册，指定延迟时间的重载方法是执行在computation调度器的。
         Observable.create(new ObservableOnSubscribe<Integer>() {

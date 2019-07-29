@@ -44,16 +44,15 @@ public class BackPressureActivity extends BaseActivity {
     @Override
     protected void initData() {
 //        testBackPressureExpection();
-//        testFlowableMissing();
         // 同步
 //        testSyncRequested();
         // 异步
 //        testAsynRequested();
 //        testStrategy(BackpressureStrategy.DROP);
-//        testStrategy(BackpressureStrategy.LATEST);
+        testStrategy(BackpressureStrategy.LATEST);
 //        testStrategy(BackpressureStrategy.ERROR);
 //        testStrategyError();
-        testStrategyMissing();
+//        testStrategyMissing();
     }
 
     /**
@@ -133,7 +132,6 @@ public class BackPressureActivity extends BaseActivity {
                         Log.d(TAG, "onComplete");
                     }
                 });
-
     }
 
     /**

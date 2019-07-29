@@ -26,7 +26,6 @@ import io.reactivex.schedulers.Schedulers;
  */
 public class ConnectObservableActivity extends BaseActivity {
 
-
     @Override
     protected int initLayoutId() {
         return R.layout.activity_content;
@@ -34,9 +33,9 @@ public class ConnectObservableActivity extends BaseActivity {
 
     @Override
     protected void initData() {
-        testPublish();
+//        testPublish();
 //        testReplay();
-//        testRefCount();
+        testRefCount();
     }
 
     /**
@@ -84,7 +83,23 @@ public class ConnectObservableActivity extends BaseActivity {
         addDispose(disposable, disposable2);
     }
 
-    private void testRefCount() {
+
+    /**
+     * 调用了 refCount 操作符之后，变成普通的 Observable ，不再需要调用 connect 来触发数据发射
+     *
+     * 结果如下；
+     *
+     * RefCountObservable第1个订阅：0->time:08:19:33
+     * RefCountObservable第1个订阅：1->time:08:19:34
+     * RefCountObservable第1个订阅：2->time:08:19:35
+     * RefCountObservable第1个订阅：3->time:08:19:36
+     * RefCountObservable第2个订阅：3->time:08:19:36
+     * RefCountObservable第1个订阅：4->time:08:19:37
+     * RefCountObservable第2个订阅：4->time:08:19:37
+     * RefCountObservable第1个订阅：5->time:08:19:38
+     * RefCountObservable第2个订阅：5->time:08:19:38
+     */
+     private void testRefCount() {
         final SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss", Locale.CANADA);
         Observable<Long> oldObservable = Observable.interval(1, TimeUnit.SECONDS).take(6);
 
@@ -95,21 +110,6 @@ public class ConnectObservableActivity extends BaseActivity {
         // 要所有的订阅者都取消订阅后，在重新订阅时数据流才会从头开始发射
         // 如果只有部分订阅者取消，则取消的订阅者或新的订阅者再次订阅的时候，不会再头开始发射，从当前数据发射并共享
         Observable<Long> refCountObservable = connectableObservable.refCount();
-
-        Disposable disposable = connectableObservable.subscribe(new Consumer<Long>() {
-            @Override
-            public void accept(Long aLong) throws Exception {
-                Log.d(TAG, "ConnectableObservable第1个订阅：" + aLong + "->time:" + format.format(new Date()));
-            }
-        });
-
-        // 延迟3秒再订阅
-        Disposable disposable2 = connectableObservable.delaySubscription(3, TimeUnit.SECONDS).subscribe(new Consumer<Long>() {
-            @Override
-            public void accept(Long aLong) throws Exception {
-                Log.d(TAG, "ConnectableObservable第2个订阅：" + aLong + "->time:" + format.format(new Date()));
-            }
-        });
 
         Disposable refCountdisposable = refCountObservable.subscribe(new Consumer<Long>() {
             @Override
@@ -126,24 +126,23 @@ public class ConnectObservableActivity extends BaseActivity {
             }
         });
 
-        connectableObservable.connect();
-
-        addDispose(disposable, disposable2, refCountdisposable, refCountdisposable2);
+        addDispose(refCountdisposable, refCountdisposable2);
     }
 
     /**
      * 发射的数据是共享的 ,默认在 Computation 调度器上
      * <p>
-     * 第1个订阅：0->time:11:49:36
-     * 第1个订阅：1->time:11:49:37
-     * 第1个订阅：2->time:11:49:38
-     * 第2个订阅：2->time:11:49:38
-     * 第1个订阅：3->time:11:49:39
-     * 第2个订阅：3->time:11:49:39
-     * 第1个订阅：4->time:11:49:40
-     * 第2个订阅：4->time:11:49:40
-     * 第1个订阅：5->time:11:49:41
-     * 第2个订阅：5->time:11:49:41
+     * 结果如下；
+     * <p>
+     * 第1个订阅：0->time:08:04:22 == 消息线程为：main
+     * 第1个订阅：1->time:08:04:22 == 消息线程为：main
+     * 第1个订阅：2->time:08:04:23 == 消息线程为：main
+     * 第1个订阅：3->time:08:04:24 == 消息线程为：main
+     * 第2个订阅：3->time:08:04:24 == 消息线程为：RxComputationThreadPool-1
+     * 第1个订阅：4->time:08:04:25 == 消息线程为：main
+     * 第2个订阅：4->time:08:04:25 == 消息线程为：RxComputationThreadPool-1
+     * 第1个订阅：5->time:08:04:26 == 消息线程为：main
+     * 第2个订阅：5->time:08:04:26 == 消息线程为：RxComputationThreadPool-1
      */
     private void testPublish() {
         final SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss", Locale.CANADA);
@@ -181,12 +180,10 @@ public class ConnectObservableActivity extends BaseActivity {
 
             @Override
             public void onError(Throwable e) {
-
             }
 
             @Override
             public void onComplete() {
-
             }
         });
 

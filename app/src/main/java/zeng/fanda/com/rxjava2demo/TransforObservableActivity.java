@@ -47,38 +47,59 @@ public class TransforObservableActivity extends BaseActivity {
 //        testScan();
 
         testWindow();
+
     }
 
     /**
-     * 与 buffer 类似，只是它在发射之前把收集到的数据放进单独的Observable， 而不是放进一个数据结构
+     * 与 buffer 类似，只是它在发射之前把收集到的数据放进单独的Observable， 而不是放进一个集合
+     *
+     * 结果如下：
+     *
+     * 收到消息==0 == 消息线程为：main
+     * 收到消息==1 == 消息线程为：main
+     * 完成 == 完成线程为：main
+     * 收到消息==2 == 消息线程为：main
+     * 收到消息==3 == 消息线程为：main
+     * 完成 == 完成线程为：main
+     * 收到消息==4 == 消息线程为：main
+     * 完成 == 完成线程为：main
      */
     private void testWindow() {
-        Disposable window = Observable.range(0, 11).window(2, 1).subscribe(new Consumer<Observable<Integer>>() {
+//        Disposable window = Observable.range(0, 11).window(2).subscribe(new Consumer<Observable<Integer>>() {
+//            int count = 1;
+//
+//            @Override
+//            public void accept(Observable<Integer> integerObservable) throws Exception {
+//                Log.d(TAG, " accept线程为：" + count + Thread.currentThread().getName());
+//                count++;
+//                Disposable disposable = integerObservable.subscribe(new Consumer<Integer>() {
+//                    @Override
+//                    public void accept(Integer integer) throws Exception {
+//                        Log.d(TAG, "收到消息==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
+//                    }
+//                });
+//            }
+//        });
 
-            int count = 1;
+        Disposable window = Observable.range(0, 5).window(2).subscribe(new Consumer<Observable<Integer>>() {
 
             @Override
             public void accept(Observable<Integer> integerObservable) throws Exception {
-                Log.d(TAG, " accept线程为：" + count + Thread.currentThread().getName());
-                count++;
-                Disposable disposable = integerObservable.subscribe(new Consumer<Integer>() {
-                    @Override
-                    public void accept(Integer integer) throws Exception {
-                        Log.d(TAG, "收到消息==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
-                    }
-                });
+                integerObservable.subscribe(mObserver);
             }
         });
-
     }
 
     /**
-     * Scan	操作符对原始Observable发射的第一项数据应用一个函数，然后将那个函数的结果作为 自己的第一项数据发射。
-     * 它将函数的结果同第二项数据一起填充给这个函数来产生它自己的 第二项数，初始值会替换第一个数据
+     * 原始 Observable 发射的第一项数据应用一个函数，然后将那个函数的结果作为自己的第一项数据发射。
+     * 它将函数的结果同第二项数据一起应用这个函数来产生它自己的第二项数
+     * <p>
+     * 结果如下：
+     * <p>
      * 1 - 3 - 6 - 10 - 15
      */
     private void testScan() {
-        Observable.range(1, 5).scan(10, new BiFunction<Integer, Integer, Integer>() {
+        Observable.range(1, 5).scan(new BiFunction<Integer, Integer, Integer>() {
             @Override
             public Integer apply(Integer integer, Integer integer2) throws Exception {
                 Log.d(TAG, "apply: integer:" + integer + "  integer2 " + integer2);
@@ -88,20 +109,31 @@ public class TransforObservableActivity extends BaseActivity {
     }
 
     /**
-     * 将数据源按照约定进行分组
+     * 将 Observable 拆分为 Observable 集合，将原始 Observable 发射的数据按照 KEY 分组，每一个 Observable 发射不同的数据
+     * <p>
+     * 结果如下：
+     * <p>
+     * GroupBy Key = 1
+     * 收到消息==3 == 消息线程为：main
+     * GroupBy Key = 0
+     * 收到消息==9 == 消息线程为：main
+     * 收到消息==15 == 消息线程为：main
+     * 收到消息==21 == 消息线程为：main
+     * 收到消息==27 == 消息线程为：main
+     * 完成 == 完成线程为：main
      */
     private void testGroupBy() {
-        Disposable groupBy = Observable.range(1, 20).groupBy(new Function<Integer, Integer>() {
+        Disposable groupBy = Observable.range(1, 10).groupBy(new Function<Integer, Integer>() {
 
             @Override
             public Integer apply(Integer integer) throws Exception {
-                // 根据源始数据进行分组
+                // 根据原始数据进行分组，这里生成的是 KEY
                 return integer % 2;
             }
         }, new Function<Integer, Integer>() {
             @Override
             public Integer apply(Integer integer) throws Exception {
-                // 对分完组之后的数据的值进行变换处理
+                // 对分完组之后的数据的值进行变换处理，这里对值进行处理
                 return integer * 3;
             }
         }).subscribe(new Consumer<GroupedObservable<Integer, Integer>>() {
@@ -117,14 +149,8 @@ public class TransforObservableActivity extends BaseActivity {
 
                 // 只打印奇数值
                 if (integerIntegerGroupedObservable.getKey() == 1) {
-                    Disposable disposable = integerIntegerGroupedObservable.subscribe(new Consumer<Integer>() {
-                        @Override
-                        public void accept(Integer integer) throws Exception {
-                            Log.d(TAG, "收到消息1==" + integer + " == 消息线程为：" + Thread.currentThread().getName());
-                        }
-                    });
+                    integerIntegerGroupedObservable.subscribe(mObserver);
                 }
-
             }
         });
     }
@@ -164,24 +190,32 @@ public class TransforObservableActivity extends BaseActivity {
 
     /**
      * 对Observable发射的每一项数据应用一个函数，执行变换操作
+     * <p>
+     * 结果如下：
+     * <p>
+     * 收到消息==false == 消息线程为：main
+     * 收到消息==false == 消息线程为：main
+     * 收到消息==true == 消息线程为：main
+     * 收到消息==true == 消息线程为：main
+     * 完成 == 完成线程为：main
      */
     private void testMap() {
 
-        Observable.fromArray(mStudentList.toArray(new Student[mStudentList.size()])).map(new Function<Student, Integer>() {
-            @Override
-            public Integer apply(Student student) throws Exception {
-                return student.age;
-            }
-        }).subscribe(mObserver);
-
-//        Observable.range(0, 10).map(new Function<Integer, Boolean>() {
-//
+//        Observable.fromArray(mStudentList.toArray(new Student[mStudentList.size()])).map(new Function<Student, Integer>() {
 //            @Override
-//            public Boolean apply(Integer integer) throws Exception {
-//                Log.d(TAG, "apply：" + integer);
-//                return integer > 5;
+//            public Integer apply(Student student) throws Exception {
+//                return student.age;
 //            }
 //        }).subscribe(mObserver);
+
+        Observable.range(0, 10).map(new Function<Integer, Boolean>() {
+
+            @Override
+            public Boolean apply(Integer integer) throws Exception {
+//                Log.d(TAG, "apply：" + integer);
+                return integer > 7;
+            }
+        }).subscribe(mObserver);
     }
 
     /**
@@ -194,7 +228,8 @@ public class TransforObservableActivity extends BaseActivity {
         Disposable disposable = Observable.fromArray(mStudentList.toArray(new Student[mStudentList.size()])).concatMap(new Function<Student, ObservableSource<Course>>() {
             @Override
             public ObservableSource<Course> apply(Student student) throws Exception {
-                return Observable.fromArray(student.mCourses.toArray(new Course[student.mCourses.size()]));
+                return Observable.fromArray(student.mCourses.toArray(new Course[student.mCourses.size()]))
+                        .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
             }
         }).subscribe(new Consumer<Course>() {
             @Override
@@ -205,7 +240,7 @@ public class TransforObservableActivity extends BaseActivity {
     }
 
     /**
-     * FlatMap	将一个发射数据的Observable变换为多个Observables，然后将它们发射的数据合并 后放进一个单独的Observable
+     * 将一个发射数据的Observable变换为多个Observables，然后将它们发射的数据合并后放进一个单独的Observable
      * <p>
      * 不保证数据源的顺序性
      */
@@ -214,7 +249,8 @@ public class TransforObservableActivity extends BaseActivity {
         Disposable disposable = Observable.fromArray(mStudentList.toArray(new Student[mStudentList.size()])).flatMap(new Function<Student, ObservableSource<Course>>() {
             @Override
             public ObservableSource<Course> apply(Student student) throws Exception {
-                return Observable.fromArray(student.mCourses.toArray(new Course[student.mCourses.size()]));
+                return Observable.fromArray(student.mCourses.toArray(new Course[student.mCourses.size()]))
+                        .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
             }
         }).subscribe(new Consumer<Course>() {
             @Override
@@ -225,23 +261,22 @@ public class TransforObservableActivity extends BaseActivity {
     }
 
     /**
-     * 定期收集Observable的数据放进一个数据包裹，然后发射这些数据包裹，而不是一次发射一 个值
+     * 定期收集Observable的数据放进一个集合，然后发射这些数据集合，而不是一次发射一个
+     * <p>
+     * 结果如下；
+     * <p>
+     * 收到消息==[0, 1] == 消息线程为：main
+     * 收到消息==[5, 6] == 消息线程为：main
+     * 收到消息==[10] == 消息线程为：main
+     * 完成 == 完成线程为：main
      */
     private void testBuffer() {
-        Disposable disposable = Observable.range(0, 11).buffer(2, 5).subscribe(new Consumer<List<Integer>>() {
-            @Override
-            public void accept(List<Integer> integers) throws Exception {
-                Log.d(TAG, "buffer:" + integers);
-            }
-        });
+        Observable.range(0, 11).buffer(2, 1)
+                .subscribe(mObserver);
 
         // 定期以	List	的形式发射新的数据，每个时间段，收集来自原始 Observable的数据
-        Disposable timeSpan = Observable.range(0, 11000).buffer(500, TimeUnit.MILLISECONDS, 10).subscribe(new Consumer<List<Integer>>() {
-            @Override
-            public void accept(List<Integer> integers) throws Exception {
-                Log.d(TAG, "buffer:" + integers);
-            }
-        });
+//        Observable.range(0, 11000).buffer(500, TimeUnit.MILLISECONDS, 10)
+//                .subscribe(mObserver);
     }
 
 
