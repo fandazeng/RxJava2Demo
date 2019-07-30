@@ -1,5 +1,9 @@
 package zeng.fanda.com.rxjava2demo.transformers;
 
+import org.reactivestreams.Publisher;
+
+import io.reactivex.Flowable;
+import io.reactivex.FlowableTransformer;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.ObservableTransformer;
@@ -20,7 +24,19 @@ public class TransformerUtil {
         }
     };
 
+    private final static FlowableTransformer mFlowableTransformer = new FlowableTransformer() {
+        @Override
+        public Publisher apply(Flowable upstream) {
+            return upstream.subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread());
+        }
+    };
+
     public static <T> ObservableTransformer<T, T> io_main() {
         return mObservableTransformer;
+    }
+
+    public static <T> FlowableTransformer<T, T> io_main_flowable() {
+        return mFlowableTransformer;
     }
 }

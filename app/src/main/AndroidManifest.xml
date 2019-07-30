@@ -30,6 +30,7 @@
         <activity android:name=".ParallelActivity" />
         <activity android:name=".rxbinding.RxBindingActivity" />
         <activity android:name=".SubjectActivity" />
+        <activity android:name=".rxbus.RxBusDemoActivity" />
     </application>
 
 </manifest>

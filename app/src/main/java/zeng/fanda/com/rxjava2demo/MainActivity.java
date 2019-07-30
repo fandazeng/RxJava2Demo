@@ -14,6 +14,7 @@ import java.util.List;
 import butterknife.BindView;
 import zeng.fanda.com.rxjava2demo.adapter.MainAdapter;
 import zeng.fanda.com.rxjava2demo.rxbinding.RxBindingActivity;
+import zeng.fanda.com.rxjava2demo.rxbus.RxBusDemoActivity;
 
 /**
  * @author 曾凡达
@@ -55,6 +56,7 @@ public class MainActivity extends BaseActivity {
         mDatas.add("并行 相关操作");
         mDatas.add("RxBinding 使用场景");
         mDatas.add("Subject 使用");
+        mDatas.add("Rxbus 使用");
     }
 
     private void initRecyclerView() {
@@ -105,8 +107,11 @@ public class MainActivity extends BaseActivity {
                     case 11:
                         intent.setClass(MainActivity.this, RxBindingActivity.class);
                         break;
-                        case 12:
+                    case 12:
                         intent.setClass(MainActivity.this, SubjectActivity.class);
+                        break;
+                    case 13:
+                        intent.setClass(MainActivity.this, RxBusDemoActivity.class);
                         break;
                 }
                 intent.putExtra(INTENT_KEY, mDatas.get(position));

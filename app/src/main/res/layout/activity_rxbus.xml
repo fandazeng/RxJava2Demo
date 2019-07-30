@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tv_content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="100dp"
+        android:textSize="18sp"
+        android:textColor="#333333"
+        android:text="这里显示 post 的内容" />
+
+    <Button
+        android:id="@+id/btn_post"
+        android:layout_width="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
+        android:layout_below="@id/tv_content"
+        android:text="Rxbus 第一版"
+        android:layout_height="wrap_content" />
+    <Button
+        android:id="@+id/btn_post2"
+        android:layout_width="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:layout_below="@id/btn_post"
+        android:text="Rxbus 第二版"
+        android:layout_height="wrap_content" />
+    <Button
+        android:id="@+id/btn_post3"
+        android:layout_width="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:layout_below="@id/btn_post2"
+        android:text="Rxbus 第三版"
+        android:layout_height="wrap_content" />
+    <Button
+        android:id="@+id/btn_post4"
+        android:layout_width="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:layout_below="@id/btn_post3"
+        android:text="Rxbus 第四版 粘性事件"
+        android:layout_height="wrap_content" />
+
+</RelativeLayout>
